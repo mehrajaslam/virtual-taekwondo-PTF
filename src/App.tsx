@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Camera, MessageSquare, Swords, Layers, Compass } from 'lucide-react';
 import { AthleteMonitorPanel } from './components/AthleteMonitorPanel';
 import { BeltCurriculumSection } from './components/BeltCurriculumSection';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
+import { GlobalRankingSection } from './components/GlobalRankingSection';
 import { HoloDojoStage } from './components/HoloDojoStage';
 import { Navbar } from './components/Navbar';
 import { TechniqueDeck } from './components/TechniqueDeck';
@@ -192,6 +194,22 @@ export default function App() {
       ...prev,
       totalRepsLogged: prev.totalRepsLogged + 1,
     }));
+  }, []);
+
+  const handleMergeCloudStats = useCallback((cloudMinutes: number, cloudReps: number) => {
+    setProgress((prev) => {
+      if (
+        cloudMinutes <= prev.totalMinutesTrained &&
+        cloudReps <= prev.totalRepsLogged
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        totalMinutesTrained: Math.max(prev.totalMinutesTrained, cloudMinutes),
+        totalRepsLogged: Math.max(prev.totalRepsLogged, cloudReps),
+      };
+    });
   }, []);
 
   return (
@@ -423,6 +441,14 @@ export default function App() {
           onCompleteDrill={handleCompleteDrill}
           onLogRep={handleLogRep}
         />
+
+        {/* Global Ranking Dashboard (Firebase Firestore Sync) */}
+        <ErrorBoundary>
+          <GlobalRankingSection
+            localProgress={progress}
+            onMergeCloudStats={handleMergeCloudStats}
+          />
+        </ErrorBoundary>
 
         {/* Belt Curriculum & Technique Library */}
         <BeltCurriculumSection

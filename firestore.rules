@@ -1,0 +1,121 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidBeltLevel(val) {
+      return val is string && (
+        val == 'White / Yellow' ||
+        val == 'Green / Blue' ||
+        val == 'Red / Black'
+      );
+    }
+
+    function isValidAthleteRankingFields(data) {
+      return data.keys().hasAll([
+          'uid',
+          'displayName',
+          'clubCity',
+          'beltLevel',
+          'totalMinutesTrained',
+          'totalRepsLogged',
+          'completedDrillsCount',
+          'practicedTechniquesCount',
+          'isPublic',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid',
+          'displayName',
+          'clubCity',
+          'beltLevel',
+          'totalMinutesTrained',
+          'totalRepsLogged',
+          'completedDrillsCount',
+          'practicedTechniquesCount',
+          'isPublic',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.uid) &&
+        data.uid == request.auth.uid &&
+        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 40 &&
+        data.clubCity is string && data.clubCity.size() >= 2 && data.clubCity.size() <= 40 &&
+        isValidBeltLevel(data.beltLevel) &&
+        data.totalMinutesTrained is int && data.totalMinutesTrained >= 0 && data.totalMinutesTrained <= 100000 &&
+        data.totalRepsLogged is int && data.totalRepsLogged >= 0 && data.totalRepsLogged <= 1000000 &&
+        data.completedDrillsCount is int && data.completedDrillsCount >= 0 && data.completedDrillsCount <= 500 &&
+        data.practicedTechniquesCount is int && data.practicedTechniquesCount >= 0 && data.practicedTechniquesCount <= 50 &&
+        data.isPublic is bool && data.isPublic == true &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    match /athlete_rankings/{athleteId} {
+      // Non-PII public leaderboard read restricted to authenticated athletes querying valid public records
+      allow get: if isSignedIn() &&
+        isValidId(athleteId) &&
+        existing().isPublic == true &&
+        existing().totalMinutesTrained >= 0;
+
+      allow list: if isSignedIn() &&
+        existing().isPublic == true;
+
+      // Owner-only create with strict server timestamps and UID matching
+      allow create: if isEmailVerified() &&
+        isValidId(athleteId) &&
+        athleteId == request.auth.uid &&
+        isValidAthleteRankingFields(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      // Owner-only update with immutable uid/createdAt and strict affectedKeys allowlist
+      allow update: if isEmailVerified() &&
+        isValidId(athleteId) &&
+        athleteId == request.auth.uid &&
+        isValidAthleteRankingFields(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName',
+          'clubCity',
+          'beltLevel',
+          'totalMinutesTrained',
+          'totalRepsLogged',
+          'completedDrillsCount',
+          'practicedTechniquesCount',
+          'updatedAt'
+        ]);
+
+      allow delete: if isEmailVerified() &&
+        isValidId(athleteId) &&
+        athleteId == request.auth.uid;
+    }
+  }
+}

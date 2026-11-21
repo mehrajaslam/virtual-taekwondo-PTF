@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "AthleteRanking": {
+      "title": "AthleteRanking",
+      "description": "Public virtual Taekwondo training ranking entry containing non-PII training totals for an athlete.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the athlete."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 40,
+          "description": "Public athlete display name shown on the leaderboard."
+        },
+        "clubCity": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 40,
+          "description": "PTF club city or region (e.g., Islamabad, Lahore, Karachi)."
+        },
+        "beltLevel": {
+          "type": "string",
+          "enum": ["White / Yellow", "Green / Blue", "Red / Black"],
+          "description": "Athlete belt division."
+        },
+        "totalMinutesTrained": {
+          "type": "integer",
+          "description": "Cumulative virtual training minutes."
+        },
+        "totalRepsLogged": {
+          "type": "integer",
+          "description": "Cumulative virtual training repetitions."
+        },
+        "completedDrillsCount": {
+          "type": "integer",
+          "description": "Count of completed guided drills."
+        },
+        "practicedTechniquesCount": {
+          "type": "integer",
+          "description": "Count of practiced techniques."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Explicitly marks entry as visible on the Global Ranking leaderboard."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "clubCity",
+        "beltLevel",
+        "totalMinutesTrained",
+        "totalRepsLogged",
+        "completedDrillsCount",
+        "practicedTechniquesCount",
+        "isPublic",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/athlete_rankings/{athleteId}": {
+      "schema": {
+        "$ref": "#/entities/AthleteRanking"
+      },
+      "description": "Global Ranking leaderboard documents keyed by athlete Firebase UID (non-PII fields only)."
+    }
+  }
+}

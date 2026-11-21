@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '#holo-dojo', label: 'Holo-Dojo' },
   { href: '#virtual-intro', label: 'Virtual Intro' },
   { href: '#training-drills', label: 'Training Drills' },
+  { href: '#global-ranking', label: 'Global Ranking' },
   { href: '#curriculum', label: 'Curriculum' },
 ];
 

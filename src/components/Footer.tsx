@@ -23,6 +23,9 @@ export const Footer: React.FC = () => {
           <a href="#training-drills" className="hover:text-white transition-colors">
             Training Drills
           </a>
+          <a href="#global-ranking" className="hover:text-white transition-colors">
+            Global Ranking
+          </a>
           <a href="#curriculum" className="hover:text-white transition-colors">
             Belt Curriculum
           </a>
