@@ -1,0 +1,8 @@
+{
+  "name": "PTF Virtual Taekwondo Academy",
+  "description": "Pakistan Taekwondo Federation's interactive 3D holographic Virtual Taekwondo academy for athlete onboarding, biomechanical technique analysis, and guided training drills.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
